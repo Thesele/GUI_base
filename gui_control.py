@@ -114,6 +114,7 @@ class TrackerGUI:
         self.el_entry.grid(row=2, column=1, sticky='ew')
         ttk.Button(cf, text="Apply Manual Az/El", command=self.apply_manual_azel).grid(row=3, column=0, columnspan=2, pady=6)
 
+
         # Lat/Lon/Alt entry (target)
         tk.Label(cf, text="Tgt Lat", bg='gray20', fg=self.text_color, font=self.small_font).grid(row=4, column=0, sticky='w')
         self.lat_entry = tk.Entry(cf, font=self.large_font, bg='black', fg=self.tgt_color, insertbackground='white')
@@ -230,11 +231,14 @@ class TrackerGUI:
         if mode:
             self.mode_var.set(mode)
 
+        #  leave message logging for the debugging purposes only
         self.log_msg("[{}] Status updated".format(time.strftime("%H:%M:%S")))
 
     def apply_manual_azel(self):
         if not self.connected:
             messagebox.showerror("Connection", "Not connected")
+            self.az_entry.delete(0, 'end')
+            self.el_entry.delete(0, 'end')
             return
         try:
             az = float(self.az_entry.get())
@@ -246,6 +250,8 @@ class TrackerGUI:
         self._send_cmd({"command":"SET_MODE", "mode":"MANUAL"})
         time.sleep(0.05)
         self._send_cmd({"command":"SET_AZ_EL", "az":az, "el":el})
+        self.az_entry.delete(0, 'end')
+        self.el_entry.delete(0, 'end')
         # GUI clears target display because manual takes precedence
         self.tgt_lat.set(""); self.tgt_lon.set(""); self.tgt_alt.set("")
 
@@ -264,6 +270,10 @@ class TrackerGUI:
         self._send_cmd({"command":"SET_MODE", "mode":"GPS"})
         time.sleep(0.05)
         self._send_cmd({"command":"SET_TARGET", "lat":lat, "lon":lon, "alt":alt})
+        # clear gps coordinates input field
+        self.lat_entry.delete(0, "end")
+        self.lon_entry.delete(0,"end")
+        self.alt_entry.delete(0, "end")
 
     def request_status(self):
         if not self.connected:
